@@ -1,0 +1,281 @@
+---
+title: Introducing <span style="color:red">R/Tidyverse</span> to Clinical Statistical Programming
+subtitle: MBSW 2018
+author: "Freeman Wang, @freestatman"
+date: 2018-05-15 <br><br> Slides available at <https://bit.ly/2KNKALU>
+output: 
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      highlightLanguage: r
+      countIncrementalSlides: false
+    css: ["bssi.css", "xaringan-themer.css"]
+---
+
+layout: true
+.footer[Slides available at <span style="color:skyblue">https://bit.ly/2KNKALU </span>]
+
+---
+
+```{r setup, include = FALSE}
+options(htmltools.dir.version = FALSE)
+
+library(xaringanthemer)
+mono_light(
+  base_color = "#1c5253",
+  header_font_google = google_font("Josefin Sans"),
+  text_font_google   = google_font("Montserrat", "300", "300i"),
+  code_font_google   = google_font("Droid Mono")
+)
+```
+
+layout: true
+
+---
+# Where are my biases 
+
+* Biomarker Statistician
+* Genomic Data Scientist and Bioinformatician
+* Visualization Engineer
+* R/Shiny Developer
+* Long time Linux/HPC/Vim user
+--
+
+* <span style="color:grey">SAS Certified Base and Advanced Programmer </span>
+
+---
+# Disclaimer
+
+1. All the data and info in this talk are public (Twitter, GitHub). 
+    - CDISC example data were downloaded from: [GitHub](https://github.com/phuse-org/phuse-scripts/tree/master/data)
+
+2. This talk represents my own views, not those of BSSI. 
+    - BSSI does not have an opinion of which tool you should use: e.g. SAS vs R, or R/base vs R/Tidyverse.
+
+---
+
+# Why? Why so popular (1/2)
+- **Not** about the good-looking plots, or the fancy manipulation functions
+- Content-driven and communication-focused workflow (logic-flow)
+- Concisely expresses human logic as R code
+    * Fast human logic I/O
+    * Yourself `r emo::ji("left_right_arrow")` team / customer
+    * Past you `r emo::ji("arrow_right")` present you
+- Seamlessly align multiple layers of logic, across analysis objective, programming, and output
+
+   
+---
+
+# Why? Why so popular (2/2)
+- structured domains of workflow, and well-defined verb/vocabulary within each domain
+   * grammer of data manipulation (dplyr)
+   * grammer of data visualizaiton (ggplot2)
+   * grammer of statistics (not mature yet... SAS is the standard.)
+- consistent design:  
+   * __learn it once, use it everywhere__
+
+---
+
+# How? Tidy principles
+
+1. Tidy data (Shared data structures)
+2. Tidy programming API (Compose simple pieces)
+3. The pipe! (functional programming for Human logic)
+4. Tidy statistics
+
+<!-- This talk will demonstrate Tidyverse workflow through  -->
+<!-- * on-line examples -->
+<!-- * clinical and statistical programming examples -->
+
+
+---
+# Tidyverse: core packages
+
+<center>
+<a href="https://www.tidyverse.org/"> 
+<img src="img/tidyverse0.png" width="600px"/>
+</a>
+</center>
+
+.footer[https://www.tidyverse.org/]
+
+---
+# Tidyverse: more packages 
+
+Clinical programming is one of Data Science
+<!-- * **data manipulation**, **exploration**  -->
+<!-- * **visualization**, **reporting** -->
+
+<center>
+<a href="http://gph.is/1VD6OCF"> 
+<img src="img/tidyverse1.png" width="600px"/>
+</a>
+</center>
+
+.footer[http://r4ds.had.co.nz/]
+
+<!-- - Importing data  -->
+<!-- - Tidying data  -->
+<!-- - Transforming data -->
+<!-- - Visualizing data -->
+<!-- - Modeling data -->
+<!-- - Efficient programming  -->
+
+---
+
+# A "Real" Tidyverse [Workflow](http://r4ds.had.co.nz/introduction-1.html)
+
+<center>
+<img src="img/drob_r_pipeline_450.png" width="600px"/>
+</center>
+
+<!-- ![](img/drob_r_pipeline_450.png) -->
+
+---
+
+# What? Tidy data
+
+* Each row is an observation
+* Each column is a variable
+* Clnical data
+  - Long-format is commonly seen in data storage, e.g. SDTM/ADaM
+  - Wide-format is commonly seen for DEA, modeling, and visualization
+  - Align manipulaiton, statistical and visualization logic with tidy data
+
+---
+
+# What? Grammer of data manipulation
+
+* `dplyr`, key verbs
+  -  `select` <span style="color:grey">(common verb in SQL)</span>
+  -  `mutate` <span style="color:grey">(e.g. case_when)</span>
+  -  `filter`
+  -  `group_by` 
+  -  `summarize`
+  -  `arrange`
+  
+* Translatable to SQL 
+
+* [Cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf)
+
+---
+
+# Example of Why, How&What
+![](img/tidyverse_vs_base.png)
+
+* Align your manipulation visually and logically
+* Convert your raw coding to more consumable coding (shorten the logic gap)
+
+---
+
+# What? Tidyverse extended families
+
+From the community
+* [ggplot2 extention packages](http://www.ggplot2-exts.org/gallery/)
+    - survminer, cowplot, etc
+* [plotly](https://plotly-book.cpsievert.me/)
+* [summarytools](https://github.com/dcomtois/summarytools)
+* [janitor](https://github.com/sfirke/janitor)
+* [tidyversity](https://github.com/mkearney/tidyversity)
+* [jsmisc](https://github.com/strengejacke/sjmisc) 
+* More bioconductor packages buys in!
+
+---
+
+# Example 
+
+```{r include=TRUE, message=FALSE, warning=FALSE}
+library(haven)
+library(tidyverse) 
+iris <- haven::read_sas('data/iris.sas7bdat')
+adsl <- Hmisc::sasxport.get("data/adam/cdisc/adsl.xpt")
+
+adsl %>%
+    select(usubjid, contains('trt')) %>% 
+    DT::datatable(options = list(pageLength = 3))
+
+```
+
+---
+# Tidy programming API: Compose simple pieces
+
+* Tidyverse vs Base R
+
+  <!-- - `stringr` package, in replace of `*grep()` base functions -->
+  <!-- - `purrr` package, in replace of `*apply` base functions -->
+  - Reduce unnecessary intermediate objects
+  - Keep data in relational formate as much as possible, e.g. data.frame
+ 
+```{r include=TRUE, message=FALSE, warning=FALSE, eval=FALSE}
+# base R
+mtcars$pounds <- mt$wt * 1000
+mtcars[["pounds"]] <- mtcars[["wt"]] / 1000
+mtcars[, "pounds"] <- mtcars[, "wt"] / 1000
+
+# Tidyverse R
+mtcars <- mtcars %>%
+  mutate(pounds = wt / 1000)
+```
+  
+
+---
+# The pipe! %>%
+
+* Conceptually the same with Unix pipe snytax
+  - Push the LHS output into the 1st argument of the RHS function
+
+* Natural representation of human logic
+  - Each layer of process is a function
+  - Enbrace Functional programming
+
+* Similar philosophy to ggplot2
+  - Grammar of Graphics
+
+---
+
+# #TidyTuesday
+
+![](img/TidyTuesday_01.PNG)
+
+---
+# #TidyTuesday
+
+![](img/TidyTuesday_02_plot.PNG)
+
+---
+# #TidyTuesday
+
+![](img/TidyTuesday_02_code.PNG)
+
+---
+# Tidy Statistics
+
+### `library(broom)` turns tidy output of model objects that are suited to further analysis, manipulation, and visualization.
+![](img/broom_01.png)
+
+---
+# Discussion
+
+* R/Tidyverse is fast growing
+    - Adpoting new idea
+    - Some rare API change caused some pain for R package developers (OK for general users)
+* Enviroment/Namespace control is a common R problem
+    - Loaded functions may be over-writen by loading other packages
+    - More robust usage is to add package namespace: `dplyr::select()`
+
+---
+# Thanks for attending
+Special thanks to 
+- [Statistical Inference: A Tidy Approach](http://bit.ly/ness-infer) [@old_man_chester](https://twitter.com/old_man_chester)
+- [tidyverse 101: Simplifying life for useRs](https://paulvanderlaken.com/2017/07/07/tidyverse-101-simplifying-life-for-users/)
+- Slides created via the R package [xaringan](https://github.com/yihui/xaringan) by Yihui Xie
+- HTML document created via the R package [rmarkdown](http://rmarkdown.rstudio.com/) by RStudio
+- Slides and source code are available at <https://github.com/freestatman/MBSW_2018_Tidyverse_Talk>
+
+---
+
+layout: true
+class: middle
+
