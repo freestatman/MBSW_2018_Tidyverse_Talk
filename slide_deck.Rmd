@@ -24,6 +24,7 @@ options(htmltools.dir.version = FALSE)
 
 library(xaringanthemer)
 mono_light(
+  title_slide_background_color = '#073020D8',
   base_color = "#1c5253",
   header_font_google = google_font("Josefin Sans"),
   text_font_google   = google_font("Montserrat", "300", "300i"),
@@ -56,42 +57,7 @@ layout: true
 
 ---
 
-# Why? Why so popular (1/2)
-- **Not** about the good-looking plots, or the fancy manipulation functions
-- Content-driven and communication-focused workflow (logic-flow)
-- Concisely expresses human logic as R code
-    * Fast human logic I/O
-    * Yourself `r emo::ji("left_right_arrow")` team / customer
-    * Past you `r emo::ji("arrow_right")` present you
-- Seamlessly align multiple layers of logic, across analysis objective, programming, and output
-
-   
----
-
-# Why? Why so popular (2/2)
-- structured domains of workflow, and well-defined verb/vocabulary within each domain
-   * grammer of data manipulation (dplyr)
-   * grammer of data visualizaiton (ggplot2)
-   * grammer of statistics (not mature yet... SAS is the standard.)
-- consistent design:  
-   * __learn it once, use it everywhere__
-
----
-
-# How? Tidy principles
-
-1. Tidy data (Shared data structures)
-2. Tidy programming API (Compose simple pieces)
-3. The pipe! (functional programming for Human logic)
-4. Tidy statistics
-
-<!-- This talk will demonstrate Tidyverse workflow through  -->
-<!-- * on-line examples -->
-<!-- * clinical and statistical programming examples -->
-
-
----
-# Tidyverse: core packages
+# Tidyverse
 
 <center>
 <a href="https://www.tidyverse.org/"> 
@@ -102,7 +68,41 @@ layout: true
 .footer[https://www.tidyverse.org/]
 
 ---
-# Tidyverse: more packages 
+
+# Why? Why so popular (1/2)
+- **Not** about the good-looking plots, or the fancy manipulation functions
+- Content-driven and communication-focused workflow (logic-flow)
+- Concisely expresses human logic as R code
+    * Fast human logic I/O
+    * Yourself `r emo::ji("left_right_arrow")` team / customer
+    * Past you `r emo::ji("arrow_right")` present you
+- Seamlessly align multiple layers of logic, across analysis objective, programming, and output
+   
+---
+
+# Why? Why so popular (2/2)
+- Structured domains of workflow, and well-defined verb/vocabulary within each domain
+   * Grammar of data manipulation (dplyr)
+   * Grammar of data visualization (ggplot2)
+- consistent design:  
+   * __learn it once, use it everywhere__
+
+---
+
+# How? Tidy principles
+
+1. Tidy data <span style="color:grey">(Shared data structures)</span>
+2. Tidy programming API <span style="color:grey">(Compose simple pieces)</span>
+3. The pipe! `%>%` <span style="color:grey">(functional programming for human logic)</span>
+4. Tidy statistics
+
+<!-- This talk will demonstrate Tidyverse workflow through  -->
+<!-- * on-line examples -->
+<!-- * clinical and statistical programming examples -->
+
+
+---
+# Tidyverse: EDA (Exploratory Data Analysis) Workflow
 
 Clinical programming is one of Data Science
 <!-- * **data manipulation**, **exploration**  -->
@@ -139,14 +139,14 @@ Clinical programming is one of Data Science
 
 * Each row is an observation
 * Each column is a variable
-* Clnical data
-  - Long-format is commonly seen in data storage, e.g. SDTM/ADaM
-  - Wide-format is commonly seen for DEA, modeling, and visualization
-  - Align manipulaiton, statistical and visualization logic with tidy data
+* Clinical examples
+  - **Long-format** is commonly used in data storage, e.g. SDTM/ADaM
+  - **Wide-format** is commonly used for DEA, modeling, and visualization
+  - Align manipulation, statistical and visualization logic with tidy data
 
 ---
 
-# What? Grammer of data manipulation
+# What? Grammar of data manipulation
 
 * `dplyr`, key verbs
   -  `select` <span style="color:grey">(common verb in SQL)</span>
@@ -174,78 +174,109 @@ Clinical programming is one of Data Science
 
 From the community
 * [ggplot2 extention packages](http://www.ggplot2-exts.org/gallery/)
-    - survminer, cowplot, etc
+    - survminer, cowplot, ggpubr, etc
 * [plotly](https://plotly-book.cpsievert.me/)
 * [summarytools](https://github.com/dcomtois/summarytools)
 * [janitor](https://github.com/sfirke/janitor)
 * [tidyversity](https://github.com/mkearney/tidyversity)
 * [jsmisc](https://github.com/strengejacke/sjmisc) 
-* More bioconductor packages buys in!
+* More bioconductor packages buy in!
 
 ---
 
-# Example 
+# Clinical Programming Example 1/3
 
-```{r include=TRUE, message=FALSE, warning=FALSE}
+```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
 library(haven)
 library(tidyverse) 
 iris <- haven::read_sas('data/iris.sas7bdat')
 adsl <- Hmisc::sasxport.get("data/adam/cdisc/adsl.xpt")
 
 adsl %>%
-    select(usubjid, contains('trt')) %>% 
+    select(usubjid, contains('trt'), -starts_with('trt01a')) %>% 
     DT::datatable(options = list(pageLength = 3))
+```
 
+---
+# Clinical Programming Example 2a/3
+
+```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+adsl %>%
+    dplyr::group_by(trt01p) %>% # treatment-wise manipulation
+    dplyr::summarize(ave_trtdur = mean(trtdur, na.rm = TRUE), 
+		     n = n()) %>%
+    knitr::kable(format = 'html')
+```
+
+---
+# Clinical Programming Example 2b/3
+
+```{r include=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+adae <- Hmisc::sasxport.get("data/adam/cdisc/adae.xpt")
+```
+
+```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+ae_max <- adae %>% 
+group_by(usubjid) %>%     # group by patient: patient-wise manipulation
+dplyr::arrange(aesev) %>% # sort AE severity from low to high, within patient
+slice(n()) %>%            # take the most severe level, within patient
+ungroup() %>%             
+dplyr::select(usubjid, aesev) 
+
+ae_max %>%
+    DT::datatable(options = list(pageLength = 3))
+```
+
+---
+# Clinical Programming Example 3/3
+```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE, fig.height = 4}
+adsl %>%
+left_join(ae_max) %>%
+group_by(trt01p, aesev) %>%
+dplyr::summarize(ave_trtdur = mean(trtdur, na.rm = TRUE), n = n()) %>%
+ggpubr::ggbarplot(x = 'aesev', y='ave_trtdur', fill='trt01p', palette = "npg")
 ```
 
 ---
 # Tidy programming API: Compose simple pieces
 
 * Tidyverse vs Base R
-
   <!-- - `stringr` package, in replace of `*grep()` base functions -->
   <!-- - `purrr` package, in replace of `*apply` base functions -->
-  - Reduce unnecessary intermediate objects
-  - Keep data in relational formate as much as possible, e.g. data.frame
- 
-```{r include=TRUE, message=FALSE, warning=FALSE, eval=FALSE}
-# base R
-mtcars$pounds <- mt$wt * 1000
-mtcars[["pounds"]] <- mtcars[["wt"]] / 1000
-mtcars[, "pounds"] <- mtcars[, "wt"] / 1000
+    - Reduce unnecessary intermediate objects (e.g. index, dummy variables), save your brain memory bandwidth
+    - Data lives in structured data.frame, instead of, individual value or vector
+    - Better default values, e.g. `stringsAsFactors=FALSE`, `drop=FALSE`
 
-# Tidyverse R
-mtcars <- mtcars %>%
-  mutate(pounds = wt / 1000)
-```
-  
+
+[R Inferno](https://www.burns-stat.com/pages/Tutor/R_inferno.pdf): An essential guide to the trouble spots and oddities of R
+ 
 
 ---
-# The pipe! %>%
+# The pipe! `%>%`
 
-* Conceptually the same with Unix pipe snytax
+* Conceptually the same with Unix pipe syntax
   - Push the LHS output into the 1st argument of the RHS function
 
 * Natural representation of human logic
-  - Each layer of process is a function
-  - Enbrace Functional programming
+  - Each processing layer is a function
+  - Embrace functional programming
 
-* Similar philosophy to ggplot2
+* Similar philosophy to `ggplot2`
   - Grammar of Graphics
 
 ---
 
-# #TidyTuesday
+# #TidyTuesday 1/3
 
 ![](img/TidyTuesday_01.PNG)
 
 ---
-# #TidyTuesday
+# #TidyTuesday 2/3
 
 ![](img/TidyTuesday_02_plot.PNG)
 
 ---
-# #TidyTuesday
+# #TidyTuesday 3/3
 
 ![](img/TidyTuesday_02_code.PNG)
 
@@ -255,14 +286,15 @@ mtcars <- mtcars %>%
 ### `library(broom)` turns tidy output of model objects that are suited to further analysis, manipulation, and visualization.
 ![](img/broom_01.png)
 
+
 ---
 # Discussion
 
 * R/Tidyverse is fast growing
-    - Adpoting new idea
-    - Some rare API change caused some pain for R package developers (OK for general users)
-* Enviroment/Namespace control is a common R problem
-    - Loaded functions may be over-writen by loading other packages
+    - Keep adopting new ideas
+    - Some rare API change caused pain for R package developers (OK for general users)
+* Environment/Namespace control is a common R problem
+    - Loaded functions may be over-written by later loaded packages (or the packages' dependency packages...)
     - More robust usage is to add package namespace: `dplyr::select()`
 
 ---
@@ -276,6 +308,13 @@ Special thanks to
 
 ---
 
+<center>
+<img src="img/thanks.gif" width="600px"/>
+</center>
+
+<!-- ![](img/thanks.gif) -->
+
+---
 layout: true
 class: middle
 
