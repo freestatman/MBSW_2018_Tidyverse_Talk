@@ -162,7 +162,7 @@ Clinical programming is one of Data Science
 
 ---
 
-# Example of Why, How&What
+## Example of Tidyverse vs Base R
 ![](img/tidyverse_vs_base.png)
 
 * Align your manipulation visually and logically
@@ -170,9 +170,9 @@ Clinical programming is one of Data Science
 
 ---
 
-# What? Tidyverse extended families
+## What? Tidyverse extended families
 
-From the community
+Tidyverse community goodies making life nice and clean 
 * [ggplot2 extention packages](http://www.ggplot2-exts.org/gallery/)
     - survminer, cowplot, ggpubr, etc
 * [plotly](https://plotly-book.cpsievert.me/)
@@ -184,7 +184,7 @@ From the community
 
 ---
 
-# Clinical Programming Example 1/3
+## Clinical Programming Example 1/3
 
 ```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
 library(haven)
@@ -198,7 +198,7 @@ adsl %>%
 ```
 
 ---
-# Clinical Programming Example 2a/3
+## Clinical Programming Example 2a/3
 
 ```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
 adsl %>%
@@ -209,7 +209,7 @@ adsl %>%
 ```
 
 ---
-# Clinical Programming Example 2b/3
+## Clinical Programming Example 2b/3
 
 ```{r include=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 adae <- Hmisc::sasxport.get("data/adam/cdisc/adae.xpt")
@@ -228,7 +228,7 @@ ae_max %>%
 ```
 
 ---
-# Clinical Programming Example 3/3
+## Clinical Programming Example 3/3
 ```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE, fig.height = 4}
 adsl %>%
 left_join(ae_max) %>%
@@ -266,17 +266,17 @@ ggpubr::ggbarplot(x = 'aesev', y='ave_trtdur', fill='trt01p', palette = "npg")
 
 ---
 
-# #TidyTuesday 1/3
+## #TidyTuesday 1/3
 
 ![](img/TidyTuesday_01.PNG)
 
 ---
-# #TidyTuesday 2/3
+## #TidyTuesday 2/3
 
 ![](img/TidyTuesday_02_plot.PNG)
 
 ---
-# #TidyTuesday 3/3
+## #TidyTuesday 3/3
 
 ![](img/TidyTuesday_02_code.PNG)
 
