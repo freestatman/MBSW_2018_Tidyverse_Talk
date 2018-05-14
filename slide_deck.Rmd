@@ -21,6 +21,7 @@ layout: true
 
 ```{r setup, include = FALSE}
 options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(warning = FALSE, error = FALSE, message = FALSE)
 
 library(xaringanthemer)
 mono_light(
@@ -104,7 +105,7 @@ layout: true
 ---
 # Tidyverse: EDA (Exploratory Data Analysis) Workflow
 
-Clinical programming is one of Data Science
+Clinical programming is one type of Data Science
 <!-- * **data manipulation**, **exploration**  -->
 <!-- * **visualization**, **reporting** -->
 
@@ -146,9 +147,9 @@ Clinical programming is one of Data Science
 
 ---
 
-# What? Grammar of data manipulation
+# What? `dplyr`: Grammar of data manipulation
 
-* `dplyr`, key verbs
+* key verbs
   -  `select` <span style="color:grey">(common verb in SQL)</span>
   -  `mutate` <span style="color:grey">(e.g. case_when)</span>
   -  `filter`
@@ -156,7 +157,7 @@ Clinical programming is one of Data Science
   -  `summarize`
   -  `arrange`
   
-* Translatable to SQL 
+* Translatable to SQL code, 
 
 * [Cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/data-transformation.pdf)
 
@@ -202,9 +203,9 @@ adsl %>%
 
 ```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
 adsl %>%
-    dplyr::group_by(trt01p) %>% # treatment-wise manipulation
-    dplyr::summarize(ave_trtdur = mean(trtdur, na.rm = TRUE), 
-		     n = n()) %>%
+    group_by(trt01p) %>% # treatment-wise manipulation
+    summarize(ave_trtdur = mean(trtdur, na.rm = TRUE), 
+              n = n()) %>%
     knitr::kable(format = 'html')
 ```
 
@@ -217,24 +218,39 @@ adae <- Hmisc::sasxport.get("data/adam/cdisc/adae.xpt")
 
 ```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
 ae_max <- adae %>% 
-group_by(usubjid) %>%     # group by patient: patient-wise manipulation
-dplyr::arrange(aesev) %>% # sort AE severity from low to high, within patient
-slice(n()) %>%            # take the most severe level, within patient
-ungroup() %>%             
-dplyr::select(usubjid, aesev) 
+    group_by(usubjid) %>%     # group by patient: patient-wise manipulation
+    arrange(aesev) %>%        # sort AE severity from low to high, within patient
+    slice(n()) %>%            # take the most severe level, within patient
+    ungroup() %>%             
+    select(usubjid, aesev) 
 
 ae_max %>%
     DT::datatable(options = list(pageLength = 3))
 ```
 
 ---
-## Clinical Programming Example 3/3
+## Clinical Programming Example 3a/3
 ```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE, fig.height = 4}
 adsl %>%
-left_join(ae_max) %>%
-group_by(trt01p, aesev) %>%
-dplyr::summarize(ave_trtdur = mean(trtdur, na.rm = TRUE), n = n()) %>%
-ggpubr::ggbarplot(x = 'aesev', y='ave_trtdur', fill='trt01p', palette = "npg")
+    left_join(ae_max) %>%
+    filter(!is.na(aesev)) %>% 
+    group_by(aesev) %>%
+    summarize(ave_trtdur = mean(trtdur, na.rm = TRUE), n = n()) %>%
+    ggpubr::ggbarplot(x = 'aesev', y='ave_trtdur', fill='aesev', palette = "npg") 
+
+```
+
+---
+## Clinical Programming Example 3b/3
+```{r include=TRUE, message=FALSE, warning=FALSE, cache=FALSE, fig.height = 4}
+adsl %>%
+    left_join(ae_max) %>%
+    filter(!is.na(aesev)) %>% 
+    group_by(aesev, trt01p) %>%
+    summarize(ave_trtdur = mean(trtdur, na.rm = TRUE), n = n()) %>%
+    ggpubr::ggbarplot(x = 'aesev', y='ave_trtdur', fill='aesev', palette = "npg") +
+    facet_grid(~trt01p) + 
+    theme(axis.text.x = element_text(size=8))
 ```
 
 ---
@@ -244,11 +260,11 @@ ggpubr::ggbarplot(x = 'aesev', y='ave_trtdur', fill='trt01p', palette = "npg")
   <!-- - `stringr` package, in replace of `*grep()` base functions -->
   <!-- - `purrr` package, in replace of `*apply` base functions -->
     - Reduce unnecessary intermediate objects (e.g. index, dummy variables), save your brain memory bandwidth
-    - Data lives in structured data.frame, instead of, individual value or vector
-    - Better default values, e.g. `stringsAsFactors=FALSE`, `drop=FALSE`
+    - Data lives in structured data.frame, instead of individual value or vector
+    - Better default argument values, e.g. `stringsAsFactors=FALSE` in `tibble` package.
 
-
-[R Inferno](https://www.burns-stat.com/pages/Tutor/R_inferno.pdf): An essential guide to the trouble spots and oddities of R
+--
+> [R Inferno](https://www.burns-stat.com/pages/Tutor/R_inferno.pdf): An essential guide to the trouble spots and oddities of R
  
 
 ---
@@ -290,12 +306,12 @@ ggpubr::ggbarplot(x = 'aesev', y='ave_trtdur', fill='trt01p', palette = "npg")
 ---
 # Discussion
 
-* R/Tidyverse is fast growing
-    - Keep adopting new ideas
-    - Some rare API change caused pain for R package developers (OK for general users)
-* Environment/Namespace control is a common R problem
-    - Loaded functions may be over-written by later loaded packages (or the packages' dependency packages...)
-    - More robust usage is to add package namespace: `dplyr::select()`
+* R/Tidyverse ecosystem is fast growing
+    - Keep adopting new ideas, e.g. non-standard evaluation (NSE)
+    - Some deep-level API change may cause pain for R package developers (OK for general users)
+* Function name collision is a common R problem
+    - Functions may be over-written by later loaded packages (or the packages' dependency packages...)
+    - More robust function calling is to add package namespace: `dplyr::select()`
 
 ---
 # Thanks for attending
@@ -311,6 +327,9 @@ Special thanks to
 <center>
 <img src="img/thanks.gif" width="600px"/>
 </center>
+
+> Freeman Wang, [@freestatman](https://twitter.com/freestatman)
+> 2018-05-15 
 
 <!-- ![](img/thanks.gif) -->
 
