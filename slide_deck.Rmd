@@ -11,7 +11,7 @@ output:
       highlightLines: true
       highlightLanguage: r
       countIncrementalSlides: false
-    css: ["bssi.css", "xaringan-themer.css"]
+    css: ["css/bssi.css", "css/xaringan-themer.css"]
 ---
 
 layout: true
